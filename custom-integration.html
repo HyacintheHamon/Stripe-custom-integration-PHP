@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<!-- Code created by Hyacinthe Hamon (https://github.com/HyacintheHamon) -->
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+
+<script type="text/javascript">
+    // This identifies the website in the createToken call below
+    Stripe.setPublishableKey('YOUR-STRIPE-PUBLISHABLE-KEY');
+
+    var stripeResponseHandler = function(status, response) {
+      var $form = $('#signup');
+
+      if (response.error) {
+        // Show the errors on the form
+        $form.find('.payment-errors').text(response.error.message);
+        $form.find('button').prop('disabled', false);
+      } else {
+        // token contains id, last4, and card type
+        var token = response.id;
+        // Insert the token into the form so it gets submitted to the server
+        $form.append($('<input type="hidden" name="stripeToken" />').val(token));
+        // and re-submit
+        $form.get(0).submit();
+      }
+    };
+
+    jQuery(function($) {
+      $('#signup').submit(function(e) {
+        var $form = $(this);
+        // Disable the submit button to prevent repeated clicks
+        $form.find('button').prop('disabled', true);
+
+        Stripe.card.createToken($form, stripeResponseHandler);
+
+        // Prevent the form from submitting with the default action
+        return false;
+        
+      });
+    });
+  </script>
+  
+</head>
+<body>
+
+       <form id="signup" action="stripe.php" method="post">
+        <h1>Create an account</h1>
+
+        <input id="name" name="name" type="text" placeholder="What's your name?"  autofocus="autofocus" required="required" class="form-control"/>
+        <input name="address" type="text" placeholder="Address" required="required" class="form-control ad"/>
+        <input name="postcode" type="text" maxlength="4" placeholder="Post code" required="required" class="form-control pc">
+        <input name="phone" type="tel" placeholder="Phone" required="required" class="form-control"/>
+        <input name="email" type="email" placeholder="Email address" required="required" class="form-control"/>
+        <select name="plan" required="required" class="form-control plan">
+	        <option value="" disabled selected>Select chosen plan</option>
+	        <option value="payasyougo">Pay as you go - $10 / package</option>
+            <option value="monthly">Monthly - $49 / month</option>
+        </select>
+        <h1>Payment details</h1>
+        <span class="payment-errors"></span>
+        
+        <input id="cardname" type="text" placeholder="Full name on card" required="required" class="form-control"/>
+        <div class="form-row">
+        <input id="cardnumber" maxlength="19" minlength="13" placeholder="Card number" required="required" class="form-control" data-stripe="number"/>
+            </div>
+            
+            <div class="form-row">
+                <div class="expiry-wrapper">
+                    <select id="expiration-month" required="required" class="card-expiry-month form-control cc" data-stripe="exp-month"></select>
+                    <script type="text/javascript">
+                        var select = $(".card-expiry-month"),
+                            month = new Date().getMonth() + 1;
+                        for (var i = 1; i <= 12; i++) {
+                            select.append($("<option value='"+i+"' "+(month === i ? "selected" : "")+">"+i+"</option>"))
+                        }
+                    </script>
+                     / 
+                    <select id="expiration-year" required="required" class="card-expiry-year form-control cc" data-stripe="exp-year"></select>
+                    <script type="text/javascript">
+                        var select = $(".card-expiry-year"),
+                            year = new Date().getFullYear();
+                        for (var i = 0; i < 12; i++) {
+                            select.append($("<option value='"+(i + year)+"' "+(i === 0 ? "selected" : "")+">"+(i + year)+"</option>"))
+                        }
+                    </script>
+                    <input id="security" placeholder="CVC" type="number" required="required" class="form-control cvc" data-stripe="cvc">
+                </div>
+            </div>
+            <button type="submit" name="submit-button">Signup</button>
+        </form>
+
+</body>
+</html>
